@@ -1,107 +1,201 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<title>Lockbox</title>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-<!--===============================================================================================-->
-<!--===============================================================================================-->
-	<link rel="stylesheet" type="text/css" href="vendor/bootstrap/css/bootstrap.min.css">
-<!--===============================================================================================-->
-<!--===============================================================================================-->
-	<link rel="stylesheet" type="text/css" href="css/util.css">
-	<link rel="stylesheet" type="text/css" href="css/main.css">
-<!--===============================================================================================-->
+    let accountUpdate = { "idToken": "",
+                    "displayName": "",
+                    "returnSecureToken":true }
 
-<!--===============================================================================================-->
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-<!--===============================================================================================-->
+function checkPass()
+{
+
+    var pass1 = document.getElementById('pass');
+    var pass2 = document.getElementById('repass');
+
+    var message = document.getElementById('confirmMessage');
+
+    var goodColor = "#66cc66";
+    var badColor = "#ff6666";
+
+    if(pass1.value == pass2.value && pass1.value.length !=0){
+        pass2.style.backgroundColor = goodColor;
+        message.style.color = goodColor;
+        message.innerHTML = "Passwords Match"
+        return true;
+    }else{
+        if(pass1.value.length !=0){
+        pass2.style.backgroundColor = badColor;
+        message.style.color = badColor;
+        message.innerHTML = "Passwords Do Not Match!"
+        
+        }else{
+            pass2.style.backgroundColor = badColor;
+                
+        }
+        
+        return false;
+    }
+}
+
+function Validate(txt) {
+    txt.value = txt.value.replace(/[^a-zA-Z-'\n\r.]+/g, '');
+}
+
+function signup(text) {
+    this.console.log("Fetching");
+    this.fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyBEP2zeZf0yyQrMpTMN3It9HJCLxDvo2Ig', {
+        method: "POST",
+        //credentials: "include", // send cookies
+        headers: {
+            'Accept': 'application/json',
+            //'Content-Type': 'application/json'
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" // otherwise $_POST is empty
+        },
+        body: new this.URLSearchParams (
+        text
+        )
+    })
+    .then(function res(response) {
+        console.log(text);
+        if(response.status == 200){
+        return response.json(); // .text();    
+        }
+        else{
+                alert("Invalid Email");
+            }
+        
+    })
+    .then(function(myJson) {
+        if(myJson != undefined){
+        accountUpdate.idToken = myJson.idToken;
+        setCookie(myJson);
+        updateUserAccount(accountUpdate);
+            }
+        
+    });
+    
+
+    
+}  
+
+function updateUserAccount(text){
+
+    this.console.log("Update user account");  
+    this.fetch('https://identitytoolkit.googleapis.com/v1/accounts:update?key=AIzaSyBEP2zeZf0yyQrMpTMN3It9HJCLxDvo2Ig', {
+        method: "POST",
+        //credentials: "include", // send cookies
+        headers: {
+            'Accept': 'application/json',
+            //'Content-Type': 'application/json'
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" // otherwise $_POST is empty
+        },
+        body: new this.URLSearchParams(
+            text
+        )
+    })
+    .then(function res(response) {
+        console.log(response);
+        return response.json(); // .text();
+    })
+    .then(function(myJson) {
+        
+        let exTime = new Date(Date.now() + 3600*1000).toUTCString()
+        document.cookie = "name="+myJson.displayName+";expires="+exTime+";"
+        window.location.replace("home.html")
+
+    });
+
+    
+}   
 
 
+function setCookie(json){
+let exTime = new Date(Date.now() + 3600*1000).toUTCString()
+document.cookie = "userId="+json.localId+";expires="+exTime+";"
+document.cookie = "idToken="+json.idToken+";expires="+exTime+";"
+}
 
-</head>
-<body>
-	
-	<div class="limiter">
-		<div class="container-login100">
-			<div class="wrap-login100">
-				<form class="login100-form validate-form p-l-55 p-r-55 p-t-178">
-					<span class="login100-form-title">
-						Sign Up 
-                    </span>
-                    
+var emailV = false;
 
-                    <div class="wrap-input100 validate-input m-b-16" data-validate="Please enter username">
-                            <input class="input100" type="text" name="name" placeholder="First Name" id="firstName" onkeyup="Validate(this)" required>
-                            <span class="focus-input100"></span>
-                        </div>
-                    <div class="wrap-input100 validate-input m-b-16" data-validate="Please enter username">
-						<input class="input100" type="text" name="name" placeholder="Last Name" id="lastName" onkeyup="Validate(this)" required>
-						<span class="focus-input100"></span>
-                    </div>
-                    
-                    <div class="wrap-input100 validate-input m-b-16" data-validate="Please enter username">
-                            <input class="input100" required type="text" name="email" placeholder="Email" id="email" onchange="email_validate(this.value);">
-                            <span class="focus-input100"></span>
-                    </div>
-<!--                    <div class="status" id="status"></div>-->
+function email_validate(email)
+{
+var regMail = /^([_a-zA-Z0-9-]+)(\.[_a-zA-Z0-9-]+)*@([a-zA-Z0-9-]+\.)+([a-zA-Z]{2,3})$/;
+    
+    
+    var msg = document.getElementById("status");
+    var emailF = document.getElementById("email");
+    
+//    var goodColor = "#66cc66";
+    var badColor = "#ff6666";
+    
+    if(regMail.test(email) == false)
+    {
+    emailF.style.backgroundColor = badColor;
+        emailV = false;
+    }
+    else
+    {
+    emailF.style.backgroundColor = "#ebebeb";
+       emailV = true;
+    }
+}
 
-					<div class="wrap-input100 validate-input m-b-16" data-validate = "Please enter password">
-						<input class="input100 " minlength="4" maxlength="16" type="password" name="pass" placeholder="Password" id="pass" >
-						<span class="focus-input100"></span>
-                    </div>
-                    <span class="status" id="status"></span>
-                    
-                    <div class="wrap-input100 validate-input" data-validate = "Please enter password">
-                        <input class="input100 " minlength="4" maxlength="16" type="password" name="repass" placeholder="Re Enter Password" id="repass" onkeyup="checkPass(); return false;">
-                        <span class="focus-input100"></span>
-                    </div>
-                    <span id="confirmMessage" class="confirmMessage"></span>
-					
+function signUp(){
+    var normColor = "#ebebeb";
+    var badColor = "#ff6666";
+    
+    var email = this.document.getElementById("email");
+    var pass = this.document.getElementById("pass");
+    var firstName = this.document.getElementById("firstName");
+    var lastName = this.document.getElementById("lastName").value;
+    
+    
+    if(firstName.value != ""){
+    firstName.style.backgroundColor = normColor;
+        if(email.value != "" || emailV == true){
+        email.style.backgroundColor = normColor;
+            if(pass.value != "" && checkPass() == true ){
+//                pass.style.backgroundColor = normColor;
+                if(pass.value.length < 6){
+                    var lessChar = document.getElementById("status");
+                    lessChar.style.color = badColor;
+                    lessChar.innerHTML = "Password must be greater than 6 characters!";
+                }else{
+                    var lessChar = document.getElementById("status");
+                    lessChar.innerHTML = "";
+                var text = '{"email":"","password":"","returnSecureToken":true}';
+                var name = firstName.value + ' ' + lastName;
+                accountUpdate.displayName = name;
 
-					<div class="container-login100-form-btn">
-						<button class="login100-form-btn" type="button" onclick="signUp()">
-							Sign Up
-						</button>
-                    </div>
-                    
-                    <div class="text-right p-t-13 p-b-23">
-							<span class="txt1">
-								Have an account!
-							</span>
+                var obj = JSON.parse(text);
+                obj.email = email.value;
+                obj.password = pass.value;
+                signup(obj);           
+            }
+            }
+            else {
+                pass.style.backgroundColor = badColor;
+            }
+            
+        }else{
+        email.style.backgroundColor = badColor;
+            
+        }
+    }else{
+        firstName.style.backgroundColor = badColor;
+    }
+    
+}
 
-					<a href="index.html" class="txt2">
-							Login
-						</a>
-					</div>
 
-					<div class="flex-col-c p-t-50 p-b-40">
-                        
-					</div>
-				</form>
-			</div>
-		</div>
-	</div>
-	
-	
-<!--===============================================================================================-->
-	<script src="vendor/jquery/jquery-3.2.1.min.js"></script>
-<!--===============================================================================================-->
-<!--===============================================================================================-->
-	<script src="vendor/bootstrap/js/popper.js"></script>
-	<script src="vendor/bootstrap/js/bootstrap.min.js"></script>
-<!--===============================================================================================-->
-<!--===============================================================================================-->
-	<script src="js/main.js"></script>
-	<script src="js/signup.js"></script>
+function getCookie(name) {
+    var match = document.cookie.match(RegExp('(?:^|;\\s*)' + name + '=([^;]*)'));
+     return match ? match[1] : null;
+}
 
-    <!-- The core Firebase JS SDK is always required and must be listed first -->
-<script src="/__/firebase/7.6.0/firebase-app.js"></script>
-
-<!-- TODO: Add SDKs for Firebase products that you want to use
-     https://firebase.google.com/docs/web/setup#available-libraries -->
-
-<!-- Initialize Firebase -->
-<script src="/__/firebase/init.js"></script>
-</body>
-</html>
+window.onload = function(){
+    let userId =this.getCookie('userId')
+    token = this.getCookie('idToken')
+	if(userId !=null && token!=null){
+    if( token !=0 && userId != 0 ){
+        this.alert("Already Signed In")
+        window.location.replace("home.html");
+    }
+	}
+}
